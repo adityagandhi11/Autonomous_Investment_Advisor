@@ -394,31 +394,9 @@ Use "NIFTYBEES.NS" (includes .NS extension)
 
 ---
 
-## Roadmap
-
-- [ ] Real options pricing (Black-Scholes)
-- [ ] Tax-loss harvesting recommendations
-- [ ] Multi-currency support
-- [ ] Risk Factor analysis (alpha/beta)
-- [ ] Backtesting engine
-- [ ] Mobile app frontend
-- [ ] Graph database for entity relationships
-- [ ] Real-time streaming prices
-
----
-
-## License
-
-MIT License - See LICENSE file for details
-
----
-
 ## Support
 
 - **Documentation**: Read inline code comments
-- **Issues**: File a GitHub issue
-- **Email**: support@investmentadvisor.local
-
 ---
 
-**Built with ❤️ using LangChain & LangGraph**
+**Built using LangChain & LangGraph**
