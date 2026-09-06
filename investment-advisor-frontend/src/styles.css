@@ -1,0 +1,5 @@
+:root { font-family: 'Manrope', sans-serif; color: #16211d; background: #f4f6f1; }
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; background: #f4f6f1; }
+button, input, textarea { font: inherit; }
+button { cursor: pointer; }

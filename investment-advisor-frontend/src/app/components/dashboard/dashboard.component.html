@@ -1,0 +1,155 @@
+<main class="dashboard">
+  <section class="hero">
+    <div>
+      <p class="eyebrow">Multi-agent intelligence</p>
+      <h1>Build a portfolio<br><span>with a point of view.</span></h1>
+      <p class="hero-copy">Turn your goals, capital, and time horizon into a considered investment strategy.</p>
+    </div>
+    <div class="hero-orbit" aria-hidden="true"><span></span><b>AI</b></div>
+  </section>
+
+  <section class="workspace">
+    <div class="section-label"><span>01</span><h2>Your investment brief</h2></div>
+    <form class="brief-form" (ngSubmit)="analyzePortfolio()">
+      <label class="goal-field">
+        <span>What are you investing for?</span>
+        <textarea name="goal" [(ngModel)]="investmentGoal" rows="3" required></textarea>
+      </label>
+      <div class="field-row">
+        <label>
+          <span>Capital to invest</span>
+          <div class="input-wrap"><b>₹</b><input name="amount" type="number" [(ngModel)]="investmentAmount" min="1000" step="1000" required></div>
+        </label>
+        <label>
+          <span>Investment horizon</span>
+          <div class="input-wrap"><input name="years" type="number" [(ngModel)]="durationYears" min="1" max="50" required><b>years</b></div>
+        </label>
+      </div>
+      <button class="analyze-button" type="submit" [disabled]="isLoading">
+        <span>{{ isLoading ? 'Running analysis...' : 'Analyze my portfolio' }}</span><b>→</b>
+      </button>
+    </form>
+  </section>
+
+  <section *ngIf="isLoading" class="loading-panel"><span class="spinner"></span><div><strong>Agents are thinking</strong><p>Planner, risk profiler, and market researcher are building your strategy.</p></div></section>
+  <section *ngIf="errorMessage" class="error-panel">{{ errorMessage }}</section>
+
+  <ng-container *ngIf="data && !isLoading">
+    <section class="result-heading">
+      <div><p class="eyebrow">Analysis complete</p><h2>Your strategy, in focus.</h2></div>
+      <button class="export-button" type="button" (click)="exportResults()">Download JSON <span>↓</span></button>
+    </section>
+
+    <section class="result-grid">
+      <article class="risk-card">
+        <p class="card-kicker">AI risk assessment</p>
+        <div class="risk-mark">{{ data.risk_profile ? data.risk_profile.substring(0, 1).toUpperCase() : '?' }}</div>
+        <p class="risk-label">Risk profile</p>
+        <h3>{{ data.risk_profile || 'Not available' }}</h3>
+        <p class="muted">Matched to your goals and investment horizon.</p>
+      </article>
+      <article class="allocation-card">
+        <div class="card-heading"><div><p class="card-kicker">Recommended allocation</p><h3>Where your money goes</h3></div><span>{{ allocationTotal() | currency:'INR':'symbol':'1.0-0' }}</span></div>
+        <div class="allocation-list">
+          <div class="allocation-row" *ngFor="let item of allocationEntries()">
+            <div class="allocation-name"><i></i><b>{{ item.name }}</b><span>{{ allocationPercent(item.amount) | number:'1.0-0' }}%</span></div>
+            <strong>{{ item.amount | currency:'INR':'symbol':'1.0-0' }}</strong>
+            <div class="allocation-bar"><span [style.width.%]="allocationPercent(item.amount)"></span></div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- Detailed Investment Steps Section -->
+    <section class="investment-details-section">
+      <div class="section-label"><span>02</span><h2>How to invest - Step by step</h2></div>
+      <p class="section-description">Detailed guidance for each recommended investment with direct links to broker platforms.</p>
+      
+      <div class="investment-cards-grid">
+        <div class="investment-detail-card" *ngFor="let rec of getRecommendations()">
+          <div class="card-header">
+            <h3>{{ rec.details?.name || rec.symbol }}</h3>
+            <div class="investment-meta">
+              <span class="category">{{ rec.details?.category || 'Investment' }}</span>
+              <span class="amount">{{ rec.amount | currency:'INR':'symbol':'1.0-0' }}</span>
+            </div>
+          </div>
+          
+          <p class="description">{{ rec.details?.description }}</p>
+          
+          <div class="investment-info-grid">
+            <div class="info-item" *ngIf="rec.details?.risk_level">
+              <strong>Risk Level:</strong>
+              <span>{{ rec.details.risk_level }}</span>
+            </div>
+            <div class="info-item" *ngIf="rec.details?.yearly_return">
+              <strong>Expected Return:</strong>
+              <span>{{ rec.details.yearly_return }}</span>
+            </div>
+            <div class="info-item" *ngIf="rec.details?.best_for">
+              <strong>Best For:</strong>
+              <span>{{ rec.details.best_for }}</span>
+            </div>
+            <div class="info-item" *ngIf="rec.details?.expense_ratio">
+              <strong>Expense Ratio:</strong>
+              <span>{{ rec.details.expense_ratio }}</span>
+            </div>
+          </div>
+          
+          <!-- Investment Steps -->
+          <div class="steps-container">
+            <h4>How to invest:</h4>
+            <div class="step" *ngFor="let step of rec.details?.investment_steps">
+              <div class="step-header">
+                <span class="step-number">Step {{ step.step }}</span>
+                <h5>{{ step.title }}</h5>
+              </div>
+              <p class="step-description">{{ step.description }}</p>
+              
+              <!-- Platforms/Links -->
+              <div class="platforms" *ngIf="step.platforms && step.platforms.length > 0">
+                <strong>Popular Platforms:</strong>
+                <div class="platform-links">
+                  <a *ngFor="let platform of step.platforms" 
+                     [href]="platform.url" 
+                     target="_blank" 
+                     rel="noopener noreferrer"
+                     class="platform-link">
+                    {{ platform.name }} ↗
+                  </a>
+                </div>
+              </div>
+              
+              <!-- Additional Info -->
+              <div class="step-extras">
+                <span *ngIf="step.timeline" class="extra-info">⏱️ {{ step.timeline }}</span>
+                <span *ngIf="step.charges" class="extra-info">💰 {{ step.charges }}</span>
+              </div>
+              
+              <!-- Instructions -->
+              <ul *ngIf="step.instructions && step.instructions.length > 0" class="instructions">
+                <li *ngFor="let instruction of step.instructions">{{ instruction }}</li>
+              </ul>
+            </div>
+          </div>
+          
+          <!-- Additional Benefits -->
+          <div class="additional-info" *ngIf="rec.details?.liquidity || rec.details?.advantages || rec.details?.taxes">
+            <h4>Key Information:</h4>
+            <ul>
+              <li *ngIf="rec.details?.liquidity"><strong>Liquidity:</strong> {{ rec.details.liquidity }}</li>
+              <li *ngIf="rec.details?.advantages"><strong>Advantages:</strong> {{ rec.details.advantages }}</li>
+              <li *ngIf="rec.details?.taxes"><strong>Taxation:</strong> {{ rec.details.taxes }}</li>
+              <li *ngIf="rec.details?.dividend_yield"><strong>Dividend Yield:</strong> {{ rec.details.dividend_yield }}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="insight-grid">
+      <article class="insight-card"><p class="card-kicker">Critic analysis</p><div class="approval">✓ <span>Strategy reviewed</span></div><p>{{ data.critique || 'No additional critique was returned.' }}</p></article>
+      <article class="insight-card trace-card"><p class="card-kicker">Workflow trace</p><div class="trace"><div *ngFor="let step of ['Planner', 'Risk profiler', 'Market research', 'Portfolio builder', 'Critic']"><i>✓</i><span>{{ step }}</span></div></div></article>
+    </section>
+  </ng-container>
+</main>

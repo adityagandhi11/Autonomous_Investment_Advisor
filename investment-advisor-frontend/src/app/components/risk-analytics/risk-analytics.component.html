@@ -1,0 +1,288 @@
+<div class="risk-analytics-dashboard">
+  <section class="hero-section">
+    <div>
+      <p class="eyebrow">Advanced Analytics</p>
+      <h1>Risk Dashboard<br><span>Understand your portfolio's risk profile.</span></h1>
+      <p class="hero-copy">Comprehensive risk metrics including volatility, Sharpe ratio, maximum drawdown, and stress testing.</p>
+    </div>
+  </section>
+
+  <section *ngIf="errorMessage" class="error-panel">{{ errorMessage }}</section>
+
+  <!-- Asset Risk Analysis Tab -->
+  <section class="analytics-workspace">
+    <div class="section-label"><span>01</span><h2>Asset Risk Analysis</h2></div>
+    <p class="section-description">Analyze risk metrics for individual stocks or ETFs</p>
+
+    <div class="input-form">
+      <label>
+        <span>Ticker Symbol</span>
+        <input 
+          type="text" 
+          [(ngModel)]="selectedTickerForAnalysis" 
+          placeholder="e.g., NIFTYBEES.NS"
+          (keyup.enter)="analyzeAssetRisk()"
+        />
+      </label>
+      <button 
+        class="action-button" 
+        (click)="analyzeAssetRisk()"
+        [disabled]="loadingAssetAnalysis"
+      >
+        {{ loadingAssetAnalysis ? 'Analyzing...' : 'Analyze Risk' }}
+      </button>
+    </div>
+
+    <!-- Asset Risk Results -->
+    <div *ngIf="assetRiskMetrics && !loadingAssetAnalysis" class="risk-results">
+      <h3>Risk Profile: {{ selectedTickerForAnalysis }}</h3>
+
+      <div class="metrics-grid">
+        <!-- Volatility Card -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Annualized Volatility</span>
+            <span class="risk-badge" [ngClass]="'risk-' + getRiskLevel(assetRiskMetrics.volatility_pct).toLowerCase()">
+              {{ getRiskLevel(assetRiskMetrics.volatility_pct) }}
+            </span>
+          </div>
+          <div class="metric-value">{{ assetRiskMetrics.volatility_pct }}%</div>
+          <p class="metric-description">Standard deviation of returns (price fluctuation)</p>
+        </div>
+
+        <!-- Sharpe Ratio Card -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Sharpe Ratio</span>
+            <span class="quality-badge" [ngClass]="'quality-' + getSharpeInterpretation(assetRiskMetrics.sharpe_ratio).toLowerCase()">
+              {{ getSharpeInterpretation(assetRiskMetrics.sharpe_ratio) }}
+            </span>
+          </div>
+          <div class="metric-value">{{ assetRiskMetrics.sharpe_ratio }}</div>
+          <p class="metric-description">Return per unit of risk (higher is better)</p>
+        </div>
+
+        <!-- Sortino Ratio Card -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Sortino Ratio</span>
+          </div>
+          <div class="metric-value">{{ assetRiskMetrics.sortino_ratio }}</div>
+          <p class="metric-description">Downside risk adjusted return (rewards only good volatility)</p>
+        </div>
+
+        <!-- Maximum Drawdown Card -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Maximum Drawdown</span>
+          </div>
+          <div class="metric-value negative">{{ assetRiskMetrics.maximum_drawdown_pct }}%</div>
+          <p class="metric-description">{{ getDrawdownInterpretation(assetRiskMetrics.maximum_drawdown_pct) }}</p>
+        </div>
+
+        <!-- VaR 95 Card -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Value at Risk (95%)</span>
+          </div>
+          <div class="metric-value negative">{{ assetRiskMetrics.var_95_pct }}%</div>
+          <p class="metric-description">5% chance of losing more than this in a day</p>
+        </div>
+
+        <!-- VaR 99 Card -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Value at Risk (99%)</span>
+          </div>
+          <div class="metric-value negative">{{ assetRiskMetrics.var_99_pct }}%</div>
+          <p class="metric-description">1% chance of losing more than this in a day</p>
+        </div>
+      </div>
+
+      <div class="metric-interpretation">
+        <h4>📊 What This Means</h4>
+        <ul>
+          <li><strong>Volatility:</strong> Measures price fluctuation. Higher = more risky but potentially higher returns.</li>
+          <li><strong>Sharpe Ratio:</strong> Best risk-adjusted return indicator. > 1.0 is excellent.</li>
+          <li><strong>Maximum Drawdown:</strong> Worst-case loss from peak price. Useful for psychological tolerance.</li>
+          <li><strong>Value at Risk:</strong> Probability of losses at given confidence level. Use for position sizing.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Portfolio Risk Analysis Tab -->
+  <section class="analytics-workspace">
+    <div class="section-label"><span>02</span><h2>Portfolio Risk Analysis</h2></div>
+    <p class="section-description">Analyze comprehensive risk for your entire portfolio</p>
+
+    <div class="portfolio-editor">
+      <div class="portfolio-list">
+        <h4>Current Portfolio</h4>
+        <div class="portfolio-items">
+          <div class="portfolio-item" *ngFor="let asset of getPortfolioAssets()">
+            <div class="item-info">
+              <span class="ticker">{{ asset.ticker }}</span>
+              <span class="amount">₹{{ asset.amount | number:'1.0-0' }}</span>
+            </div>
+            <button class="remove-btn" (click)="removeAssetFromPortfolio(asset.ticker)">✕</button>
+          </div>
+        </div>
+        <button class="add-asset-btn" (click)="addAssetToPortfolio()">+ Add Asset</button>
+      </div>
+
+      <button 
+        class="action-button large" 
+        (click)="analyzePortfolioRisk()"
+        [disabled]="loadingPortfolioAnalysis"
+      >
+        {{ loadingPortfolioAnalysis ? 'Analyzing Portfolio...' : 'Analyze Portfolio Risk' }}
+      </button>
+    </div>
+
+    <!-- Portfolio Risk Results -->
+    <div *ngIf="portfolioRiskData && !loadingPortfolioAnalysis" class="portfolio-risk-results">
+      <h3>Portfolio Risk Dashboard</h3>
+
+      <!-- Portfolio Summary -->
+      <section class="portfolio-summary-section">
+        <h4>💼 Portfolio Summary</h4>
+        <div class="summary-grid">
+          <div class="summary-item">
+            <span class="label">Total Value</span>
+            <span class="value">₹{{ portfolioRiskData.portfolio_summary.total_value | number:'1.0-0' }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Number of Assets</span>
+            <span class="value">{{ portfolioRiskData.portfolio_summary.number_of_assets }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Largest Position</span>
+            <span class="value">{{ portfolioRiskData.portfolio_summary.largest_position }}%</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Portfolio Volatility</span>
+            <span class="value">{{ portfolioRiskData.portfolio_summary.portfolio_volatility_pct }}%</span>
+          </div>
+        </div>
+
+        <!-- Asset Allocation -->
+        <div class="allocation-breakdown">
+          <h5>Asset Allocation Weights</h5>
+          <div class="allocation-list">
+            <div class="allocation-row" *ngFor="let weight of portfolioRiskData.portfolio_summary.weights | keyvalue">
+              <span class="ticker">{{ weight.key }}</span>
+              <span class="percentage">{{ weight.value }}%</span>
+              <div class="allocation-bar">
+                <span [style.width.%]="weight.value"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Risk Assessment -->
+      <section class="risk-assessment-section">
+        <h4>⚠️ Risk Assessment</h4>
+        <div class="risk-cards">
+          <div class="risk-item">
+            <span class="label">Concentration Risk:</span>
+            <span class="value" [ngClass]="'concentration-' + portfolioRiskData.risk_assessment.concentration_risk.toLowerCase()">
+              {{ portfolioRiskData.risk_assessment.concentration_risk }}
+            </span>
+          </div>
+          <div class="risk-item">
+            <span class="label">Largest Position:</span>
+            <span class="value">{{ portfolioRiskData.risk_assessment.largest_position_weight }}%</span>
+          </div>
+          <div class="risk-item">
+            <span class="label">Portfolio Volatility:</span>
+            <span class="value">{{ portfolioRiskData.risk_assessment.portfolio_volatility }}%</span>
+          </div>
+        </div>
+
+        <div class="concentration-explanation">
+          <p *ngIf="portfolioRiskData.risk_assessment.concentration_risk === 'High'">
+            ⚠️ <strong>High Concentration Risk:</strong> Your portfolio is heavily weighted towards one or two assets. Consider diversifying.
+          </p>
+          <p *ngIf="portfolioRiskData.risk_assessment.concentration_risk === 'Moderate'">
+            ℹ️ <strong>Moderate Concentration:</strong> Your portfolio has reasonable diversification, but could be improved.
+          </p>
+          <p *ngIf="portfolioRiskData.risk_assessment.concentration_risk === 'Low'">
+            ✓ <strong>Good Diversification:</strong> Your portfolio is well-diversified across multiple assets.
+          </p>
+        </div>
+      </section>
+
+      <!-- Stress Test -->
+      <section class="stress-test-section">
+        <h4>🔴 Market Stress Test</h4>
+        <div class="stress-test-card">
+          <div class="scenario">{{ portfolioRiskData.stress_test.scenario }}</div>
+          <div class="results">
+            <div class="result-row">
+              <span>Current Value:</span>
+              <span class="amount">₹{{ portfolioRiskData.stress_test.current_value | number:'1.0-0' }}</span>
+            </div>
+            <div class="result-row">
+              <span>Stressed Value:</span>
+              <span class="amount negative">₹{{ portfolioRiskData.stress_test.estimated_value | number:'1.0-0' }}</span>
+            </div>
+            <div class="result-row highlight">
+              <span>Potential Loss:</span>
+              <span class="amount negative">₹{{ portfolioRiskData.stress_test.estimated_loss | number:'1.0-0' }} ({{ portfolioRiskData.stress_test.loss_percentage }}%)</span>
+            </div>
+          </div>
+          <p class="description">{{ portfolioRiskData.stress_test.description }}</p>
+        </div>
+      </section>
+
+      <div class="risk-recommendations">
+        <h4>💡 Recommendations</h4>
+        <ul>
+          <li *ngIf="portfolioRiskData.risk_assessment.largest_position_weight > 40">
+            Consider reducing your largest position to below 40% for better diversification
+          </li>
+          <li *ngIf="portfolioRiskData.portfolio_summary.number_of_assets < 3">
+            Add more assets to reduce portfolio risk through diversification
+          </li>
+          <li *ngIf="portfolioRiskData.risk_assessment.portfolio_volatility > 25">
+            Your portfolio has high volatility. Consider adding lower-risk assets like bonds or gold ETFs
+          </li>
+          <li>Rebalance quarterly to maintain your target allocation</li>
+          <li>Review stress test results to ensure you can handle market downturns</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="info-section">
+    <h3>📚 Understanding Risk Metrics</h3>
+    <div class="info-grid">
+      <div class="info-card">
+        <h4>Volatility</h4>
+        <p>Measures how much an asset's price fluctuates. Higher volatility = higher risk but potentially higher returns.</p>
+      </div>
+      <div class="info-card">
+        <h4>Sharpe Ratio</h4>
+        <p>Measures risk-adjusted return. A Sharpe ratio > 1.0 is considered good. Shows how well you're compensated for taking risk.</p>
+      </div>
+      <div class="info-card">
+        <h4>Maximum Drawdown</h4>
+        <p>The biggest decline from peak to trough. Useful for understanding psychological pain tolerance and worst-case scenarios.</p>
+      </div>
+      <div class="info-card">
+        <h4>Value at Risk</h4>
+        <p>Maximum expected loss at a given confidence level. Helps with position sizing and risk management.</p>
+      </div>
+      <div class="info-card">
+        <h4>Concentration Risk</h4>
+        <p>Risk from having too much in one asset. Diversification across uncorrelated assets reduces this risk.</p>
+      </div>
+      <div class="info-card">
+        <h4>Stress Testing</h4>
+        <p>Simulates portfolio performance during market crashes. Helps you understand your portfolio's resilience.</p>
+      </div>
+    </div>
+  </section>
+</div>
