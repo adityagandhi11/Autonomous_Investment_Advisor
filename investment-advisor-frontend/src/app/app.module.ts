@@ -7,12 +7,16 @@ import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app.routes';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { RiskAnalyticsComponent } from './components/risk-analytics/risk-analytics.component';
+import { LoginComponent } from './components/login/login.component';
+import { SignupComponent } from './components/signup/signup.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     DashboardComponent,
-    RiskAnalyticsComponent
+    RiskAnalyticsComponent,
+    LoginComponent,
+    SignupComponent
   ],
   imports: [
     BrowserModule,

@@ -25,11 +25,17 @@ from app.services.risk_analytics_service import (
     RiskAnalyticsEngine
 )
 
+from app.auth_routes import router as auth_router
+from app.investor_routes import router as investor_router
+
 app = FastAPI(
     title="Autonomous Investment Advisor",
     description="Production-grade agentic AI for personalized investment recommendations",
     version="1.0.0"
 )
+
+app.include_router(auth_router)
+app.include_router(investor_router)
 
 
 @app.get("/")
