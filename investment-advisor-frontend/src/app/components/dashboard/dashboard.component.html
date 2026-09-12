@@ -1,4 +1,5 @@
-<main class="dashboard">
+<!-- <main class="dashboard">
+  
   <section class="hero">
     <div>
       <p class="eyebrow">Multi-agent intelligence</p>
@@ -60,7 +61,6 @@
       </article>
     </section>
 
-    <!-- Detailed Investment Steps Section -->
     <section class="investment-details-section">
       <div class="section-label"><span>02</span><h2>How to invest - Step by step</h2></div>
       <p class="section-description">Detailed guidance for each recommended investment with direct links to broker platforms.</p>
@@ -96,7 +96,6 @@
             </div>
           </div>
           
-          <!-- Investment Steps -->
           <div class="steps-container">
             <h4>How to invest:</h4>
             <div class="step" *ngFor="let step of rec.details?.investment_steps">
@@ -106,7 +105,6 @@
               </div>
               <p class="step-description">{{ step.description }}</p>
               
-              <!-- Platforms/Links -->
               <div class="platforms" *ngIf="step.platforms && step.platforms.length > 0">
                 <strong>Popular Platforms:</strong>
                 <div class="platform-links">
@@ -120,20 +118,17 @@
                 </div>
               </div>
               
-              <!-- Additional Info -->
               <div class="step-extras">
                 <span *ngIf="step.timeline" class="extra-info">⏱️ {{ step.timeline }}</span>
                 <span *ngIf="step.charges" class="extra-info">💰 {{ step.charges }}</span>
               </div>
               
-              <!-- Instructions -->
               <ul *ngIf="step.instructions && step.instructions.length > 0" class="instructions">
                 <li *ngFor="let instruction of step.instructions">{{ instruction }}</li>
               </ul>
             </div>
           </div>
           
-          <!-- Additional Benefits -->
           <div class="additional-info" *ngIf="rec.details?.liquidity || rec.details?.advantages || rec.details?.taxes">
             <h4>Key Information:</h4>
             <ul>
@@ -152,4 +147,936 @@
       <article class="insight-card trace-card"><p class="card-kicker">Workflow trace</p><div class="trace"><div *ngFor="let step of ['Planner', 'Risk profiler', 'Market research', 'Portfolio builder', 'Critic']"><i>✓</i><span>{{ step }}</span></div></div></article>
     </section>
   </ng-container>
+</main> -->
+
+
+<main class="dashboard">
+
+  <!-- ============================================================
+       HERO
+       ============================================================ -->
+
+  <section class="hero">
+    <div>
+      <p class="eyebrow">Multi-agent intelligence</p>
+
+      <h1>
+        Build a portfolio<br>
+        <span>with a point of view.</span>
+      </h1>
+
+      <p class="hero-copy">
+        Turn your goals, capital, and time horizon into a considered
+        investment strategy.
+      </p>
+    </div>
+
+    <div class="hero-orbit" aria-hidden="true">
+      <span></span>
+      <b>AI</b>
+    </div>
+  </section>
+
+
+  <!-- ============================================================
+       INVESTMENT BRIEF
+       SHOWN BEFORE PORTFOLIO ANALYSIS
+       ============================================================ -->
+
+  <section *ngIf="!hasAnalysis" class="workspace">
+
+    <div class="section-label">
+      <span>01</span>
+      <h2>Your investment brief</h2>
+    </div>
+
+    <form class="brief-form" (ngSubmit)="analyzePortfolio()">
+
+      <!-- Investment Goal -->
+
+      <label class="goal-field">
+
+        <span>What are you investing for?</span>
+
+        <textarea
+          name="goal"
+          [(ngModel)]="investmentGoal"
+          rows="3"
+          required>
+        </textarea>
+
+      </label>
+
+
+      <!-- Amount + Horizon -->
+
+      <div class="field-row">
+
+        <label>
+
+          <span>Capital to invest</span>
+
+          <div class="input-wrap">
+
+            <b>₹</b>
+
+            <input
+              name="amount"
+              type="number"
+              [(ngModel)]="investmentAmount"
+              min="1000"
+              step="1000"
+              required>
+
+          </div>
+
+        </label>
+
+
+        <label>
+
+          <span>Investment horizon</span>
+
+          <div class="input-wrap">
+
+            <input
+              name="years"
+              type="number"
+              [(ngModel)]="durationYears"
+              min="1"
+              max="50"
+              required>
+
+            <b>years</b>
+
+          </div>
+
+        </label>
+
+      </div>
+
+
+      <!-- Analyze Button -->
+
+      <button
+        class="analyze-button"
+        type="submit"
+        [disabled]="isLoading">
+
+        <span>
+          {{ isLoading ? 'Running analysis...' : 'Analyze my portfolio' }}
+        </span>
+
+        <b>→</b>
+
+      </button>
+
+    </form>
+
+  </section>
+
+
+  <!-- ============================================================
+       LOADING
+       ============================================================ -->
+
+  <section
+    *ngIf="isLoading"
+    class="loading-panel">
+
+    <span class="spinner"></span>
+
+    <div>
+
+      <strong>Agents are thinking</strong>
+
+      <p>
+        Planner, risk profiler, and market researcher are building
+        your strategy.
+      </p>
+
+    </div>
+
+  </section>
+
+
+  <!-- ============================================================
+       ERROR
+       ============================================================ -->
+
+  <section
+    *ngIf="errorMessage"
+    class="error-panel">
+
+    {{ errorMessage }}
+
+  </section>
+
+
+  <!-- ============================================================
+       ANALYSIS COMPLETE
+       ============================================================ -->
+
+  <ng-container *ngIf="data && !isLoading">
+
+
+    <!-- ==========================================================
+         AI ADVISOR CHAT
+         REPLACES THE ORIGINAL INVESTMENT BRIEF
+         ========================================================== -->
+
+    <section class="chat-workspace">
+
+      <!-- Chat Header -->
+
+      <div class="chat-header">
+
+        <div class="section-label">
+          <span>01</span>
+
+          <div>
+            <p class="eyebrow">AI advisor</p>
+            <h2>Your investment conversation</h2>
+          </div>
+        </div>
+
+        <!-- <div class="chat-status">
+          <span class="status-dot"></span>
+          Advisor online
+        </div> -->
+
+      </div>
+
+
+      <!-- Chat Description -->
+
+      <p class="chat-description">
+        You can ask questions about your portfolio or tell me how you want
+        to change it. For example, you can ask why an asset was
+        recommended or request a different investment amount,
+        horizon, or risk level.
+      </p>
+
+
+      <!-- ========================================================
+           CHAT MESSAGES
+           ======================================================== -->
+
+      <div class="chat-messages">
+
+        <div
+          *ngFor="let message of chatMessages"
+          class="chat-message"
+          [class.user-message]="message.role === 'user'"
+          [class.assistant-message]="message.role === 'assistant'">
+
+          <!-- Assistant Avatar -->
+<!-- 
+          <div
+            *ngIf="message.role === 'assistant'"
+            class="message-avatar">
+
+            AI
+
+          </div> -->
+
+
+          <!-- Message Bubble -->
+
+          <div class="message-content">
+
+            <div class="message-author">
+              {{ message.role === 'user' ? 'You:' : 'AI Advisor:' }}
+            </div>
+
+            <div class="message-bubble">
+              {{ message.content }}
+            </div>
+
+          </div>
+
+
+          <!-- User Avatar -->
+
+          <div
+            *ngIf="message.role === 'user'"
+            class="message-avatar user-avatar">
+
+            {{ currentUser?.name ? currentUser?.name?.charAt(0)?.toUpperCase() : 'U' }}
+
+          </div>
+
+        </div>
+
+
+        <!-- Empty state -->
+
+        <div
+          *ngIf="chatMessages.length === 0"
+          class="chat-empty">
+
+          <div class="chat-empty-icon">
+            AI
+          </div>
+
+          <h3>Ask your investment advisor</h3>
+
+          <p>
+            Ask about your portfolio, risk, diversification,
+            individual investments, or possible changes to your
+            strategy.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <!-- ========================================================
+           CHAT INPUT
+           ======================================================== -->
+
+      <form
+        class="chat-input-area"
+        (ngSubmit)="sendChatMessage()">
+
+        <div class="chat-input-wrapper">
+
+          <textarea
+            name="chatMessage"
+            [(ngModel)]="chatMessage"
+            rows="1"
+            placeholder="Ask your investment advisor..."
+            (keydown.enter)="$event.shiftKey ? null : sendChatMessage(); $event.preventDefault()">
+          </textarea>
+
+          <button
+            type="submit"
+            class="chat-send-button"
+            [disabled]="!chatMessage.trim()">
+
+            <span>→</span>
+
+          </button>
+
+        </div>
+
+        <p class="chat-hint">
+          Press Enter to send · Shift + Enter for a new line
+        </p>
+
+      </form>
+
+    </section>
+
+
+    <!-- ==========================================================
+         RESULT HEADING
+         ========================================================== -->
+
+    <section class="result-heading">
+
+      <div>
+
+        <p class="eyebrow">
+          Analysis complete
+        </p>
+
+        <h2>
+          Your strategy, in focus.
+        </h2>
+
+      </div>
+
+      <button
+        class="export-button"
+        type="button"
+        (click)="exportResults()">
+
+        Download JSON
+        <span>↓</span>
+
+      </button>
+
+    </section>
+
+
+    <!-- ==========================================================
+         RISK + ALLOCATION
+         ========================================================== -->
+
+    <section class="result-grid">
+
+
+      <!-- Risk Card -->
+
+      <article class="risk-card">
+
+        <p class="card-kicker">
+          AI risk assessment
+        </p>
+
+        <div class="risk-mark">
+          {{
+            data.risk_profile
+              ? data.risk_profile.substring(0, 1).toUpperCase()
+              : '?'
+          }}
+        </div>
+
+        <p class="risk-label">
+          Risk profile
+        </p>
+
+        <h3>
+          {{ data.risk_profile || 'Not available' }}
+        </h3>
+
+        <p class="muted">
+          Matched to your goals and investment horizon.
+        </p>
+
+      </article>
+
+
+      <!-- Allocation Card -->
+
+      <article class="allocation-card">
+
+        <div class="card-heading">
+
+          <div>
+
+            <p class="card-kicker">
+              Recommended allocation
+            </p>
+
+            <h3>
+              Where your money goes
+            </h3>
+
+          </div>
+
+          <span>
+            {{
+              allocationTotal()
+                | currency:'INR':'symbol':'1.0-0'
+            }}
+          </span>
+
+        </div>
+
+
+        <div class="allocation-list">
+
+          <div
+            class="allocation-row"
+            *ngFor="let item of allocationEntries()">
+
+            <div class="allocation-name">
+
+              <i></i>
+
+              <b>
+                {{ item.name }}
+              </b>
+
+              <span>
+                {{
+                  allocationPercent(item.amount)
+                    | number:'1.0-0'
+                }}%
+              </span>
+
+            </div>
+
+            <strong>
+              {{
+                item.amount
+                  | currency:'INR':'symbol':'1.0-0'
+              }}
+            </strong>
+
+            <div class="allocation-bar">
+
+              <span
+                [style.width.%]="allocationPercent(item.amount)">
+              </span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </article>
+
+    </section>
+
+
+    <!-- ==========================================================
+         INVESTMENT DETAILS
+         ========================================================== -->
+
+    <section class="investment-details-section">
+
+      <div class="section-label">
+
+        <span>02</span>
+
+        <h2>
+          How to invest - Step by step
+        </h2>
+
+      </div>
+
+
+      <p class="section-description">
+        Detailed guidance for each recommended investment with direct
+        links to broker platforms.
+      </p>
+
+
+      <div class="investment-cards-grid">
+
+        <div
+          class="investment-detail-card"
+          *ngFor="let rec of getRecommendations()">
+
+
+          <!-- Card Header -->
+
+          <div class="card-header">
+
+            <h3>
+              {{ rec.details?.name || rec.symbol }}
+            </h3>
+
+            <div class="investment-meta">
+
+              <span class="category">
+                {{ rec.details?.category || 'Investment' }}
+              </span>
+
+              <span class="amount">
+                {{
+                  rec.amount
+                    | currency:'INR':'symbol':'1.0-0'
+                }}
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <!-- Description -->
+
+          <p class="description">
+            {{ rec.details?.description }}
+          </p>
+
+
+          <!-- Investment Information -->
+
+          <div class="investment-info-grid">
+
+            <div
+              class="info-item"
+              *ngIf="rec.details?.risk_level">
+
+              <strong>
+                Risk Level:
+              </strong>
+
+              <span>
+                {{ rec.details.risk_level }}
+              </span>
+
+            </div>
+
+
+            <div
+              class="info-item"
+              *ngIf="rec.details?.yearly_return">
+
+              <strong>
+                Expected Return:
+              </strong>
+
+              <span>
+                {{ rec.details.yearly_return }}
+              </span>
+
+            </div>
+
+
+            <div
+              class="info-item"
+              *ngIf="rec.details?.best_for">
+
+              <strong>
+                Best For:
+              </strong>
+
+              <span>
+                {{ rec.details.best_for }}
+              </span>
+
+            </div>
+
+
+            <div
+              class="info-item"
+              *ngIf="rec.details?.expense_ratio">
+
+              <strong>
+                Expense Ratio:
+              </strong>
+
+              <span>
+                {{ rec.details.expense_ratio }}
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <!-- Investment Steps -->
+
+          <div class="steps-container">
+
+            <h4>
+              How to invest:
+            </h4>
+
+
+            <div
+              class="step"
+              *ngFor="let step of rec.details?.investment_steps">
+
+
+              <div class="step-header">
+
+                <span class="step-number">
+                  Step {{ step.step }}
+                </span>
+
+                <h5>
+                  {{ step.title }}
+                </h5>
+
+              </div>
+
+
+              <p class="step-description">
+                {{ step.description }}
+              </p>
+
+
+              <!-- Platforms -->
+
+              <div
+                class="platforms"
+                *ngIf="step.platforms && step.platforms.length > 0">
+
+                <strong>
+                  Popular Platforms:
+                </strong>
+
+                <div class="platform-links">
+
+                  <a
+                    *ngFor="let platform of step.platforms"
+                    [href]="platform.url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="platform-link">
+
+                    {{ platform.name }} ↗
+
+                  </a>
+
+                </div>
+
+              </div>
+
+
+              <!-- Extra Information -->
+
+              <div class="step-extras">
+
+                <span
+                  *ngIf="step.timeline"
+                  class="extra-info">
+
+                  ⏱️ {{ step.timeline }}
+
+                </span>
+
+                <span
+                  *ngIf="step.charges"
+                  class="extra-info">
+
+                  💰 {{ step.charges }}
+
+                </span>
+
+              </div>
+
+
+              <!-- Instructions -->
+
+              <ul
+                *ngIf="step.instructions && step.instructions.length > 0"
+                class="instructions">
+
+                <li
+                  *ngFor="let instruction of step.instructions">
+
+                  {{ instruction }}
+
+                </li>
+
+              </ul>
+
+            </div>
+
+          </div>
+
+
+          <!-- Additional Information -->
+
+          <div
+            class="additional-info"
+            *ngIf="
+              rec.details?.liquidity ||
+              rec.details?.advantages ||
+              rec.details?.taxes
+            ">
+
+            <h4>
+              Key Information:
+            </h4>
+
+            <ul>
+
+              <li *ngIf="rec.details?.liquidity">
+
+                <strong>
+                  Liquidity:
+                </strong>
+
+                {{ rec.details.liquidity }}
+
+              </li>
+
+
+              <li *ngIf="rec.details?.advantages">
+
+                <strong>
+                  Advantages:
+                </strong>
+
+                {{ rec.details.advantages }}
+
+              </li>
+
+
+              <li *ngIf="rec.details?.taxes">
+
+                <strong>
+                  Taxation:
+                </strong>
+
+                {{ rec.details.taxes }}
+
+              </li>
+
+
+              <li *ngIf="rec.details?.dividend_yield">
+
+                <strong>
+                  Dividend Yield:
+                </strong>
+
+                {{ rec.details.dividend_yield }}
+
+              </li>
+
+            </ul>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ==========================================================
+         INSIGHTS
+         ========================================================== -->
+
+    <section class="insight-grid">
+
+
+      <!-- Critic Analysis -->
+
+      <article class="insight-card">
+
+        <p class="card-kicker">
+          Critic analysis
+        </p>
+
+        <div class="approval">
+          ✓
+          <span>
+            Strategy reviewed
+          </span>
+        </div>
+
+        <p>
+          {{
+            data.critique ||
+            'No additional critique was returned.'
+          }}
+        </p>
+
+      </article>
+
+
+      <!-- Workflow Trace -->
+
+      <article class="insight-card trace-card">
+
+        <p class="card-kicker">
+          Workflow trace
+        </p>
+
+        <div class="trace">
+
+          <div
+            *ngFor="
+              let step of [
+                'Planner',
+                'Risk profiler',
+                'Market research',
+                'Portfolio builder',
+                'Critic'
+              ]
+            ">
+
+            <i>✓</i>
+
+            <span>
+              {{ step }}
+            </span>
+
+          </div>
+
+        </div>
+
+      </article>
+
+    </section>
+
+  </ng-container>
+
+
+  <!-- ============================================================
+       AUTHENTICATION MODAL
+       SHOWN WHEN GUEST TRIES TO SEND SECOND CHAT MESSAGE
+       ============================================================ -->
+
+  <div
+    *ngIf="showAuthModal"
+    class="auth-modal-overlay"
+    (click)="closeAuthModal()">
+
+
+    <div
+      class="auth-modal"
+      (click)="$event.stopPropagation()">
+
+
+      <!-- Close -->
+
+      <button
+        type="button"
+        class="auth-modal-close"
+        (click)="closeAuthModal()">
+
+        ×
+
+      </button>
+
+
+      <!-- Modal Icon -->
+
+      <div class="auth-modal-icon">
+        AI
+      </div>
+
+
+      <!-- Modal Content -->
+
+      <p class="eyebrow">
+        Continue your conversation
+      </p>
+
+      <h2>
+        Create your investment workspace.
+      </h2>
+
+      <p class="auth-modal-copy">
+
+        You've used your free advisor message.
+        Sign in or create an account to continue chatting
+        with your investment advisor.
+
+      </p>
+
+
+      <!-- Actions -->
+
+      <div class="auth-modal-actions">
+
+        <button
+          type="button"
+          class="modal-login-button"
+          (click)="loginFromModal()">
+
+          Log in
+
+        </button>
+
+
+        <button
+          type="button"
+          class="modal-signup-button"
+          (click)="signupFromModal()">
+
+          Create account
+
+        </button>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="modal-cancel-button"
+        (click)="closeAuthModal()">
+
+        Maybe later
+
+      </button>
+
+    </div>
+
+  </div>
+
 </main>

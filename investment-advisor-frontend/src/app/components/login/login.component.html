@@ -1,0 +1,107 @@
+<div class="auth-page">
+
+  <div class="auth-card">
+
+    <div class="auth-header">
+
+      <h1>Welcome Back</h1>
+
+      <p>
+        Sign in to continue with your investment advisor.
+      </p>
+
+    </div>
+
+
+    <form (ngSubmit)="login()">
+
+      <div class="form-group">
+
+        <label for="email">
+          Email
+        </label>
+
+        <input
+          id="email"
+          type="email"
+          name="email"
+          [(ngModel)]="email"
+          placeholder="Enter your email"
+          autocomplete="email"
+          required
+        />
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label for="password">
+          Password
+        </label>
+
+        <input
+          id="password"
+          type="password"
+          name="password"
+          [(ngModel)]="password"
+          placeholder="Enter your password"
+          autocomplete="current-password"
+          required
+        />
+
+      </div>
+
+
+      <div
+        class="error-message"
+        *ngIf="errorMessage"
+      >
+        {{ errorMessage }}
+      </div>
+
+
+      <button
+        type="submit"
+        class="auth-button"
+        [disabled]="isLoading"
+      >
+
+        <span *ngIf="!isLoading">
+          Login
+        </span>
+
+        <span *ngIf="isLoading">
+          Logging in...
+        </span>
+
+      </button>
+
+    </form>
+
+
+    <div class="divider">
+      <span>OR</span>
+    </div>
+
+
+    <button
+      type="button"
+      class="secondary-button"
+      (click)="goToSignup()"
+    >
+      Create an Account
+    </button>
+
+
+    <button
+      type="button"
+      class="back-button"
+      (click)="goToDashboard()"
+    >
+      ← Back to Dashboard
+    </button>
+
+  </div>
+
+</div>

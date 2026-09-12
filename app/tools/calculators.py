@@ -2,6 +2,10 @@
 
 from typing import List, Dict
 
+import math
+import statistics
+
+
 
 def calculate_risk(positions: List[Dict[str, float]]) -> float:
     """
@@ -37,20 +41,46 @@ def calculate_expected_return(positions: List[Dict[str, float]]) -> float:
     return round(weighted_return * 100, 2)  # Return as percentage
 
 
-def calculate_sharpe_ratio(returns: List[float], risk_free_rate: float = 0.05) -> float:
-    """
-    Calculate Sharpe ratio for portfolio performance evaluation.
-    Sharpe = (Portfolio Return - Risk Free Rate) / Standard Deviation
-    """
-    if not returns or len(returns) < 2:
+# def calculate_sharpe_ratio(returns: List[float], risk_free_rate: float = 0.05) -> float:
+#     """
+#     Calculate Sharpe ratio for portfolio performance evaluation.
+#     Sharpe = (Portfolio Return - Risk Free Rate) / Standard Deviation
+#     """
+#     if not returns or len(returns) < 2:
+#         return 0.0
+
+#     import statistics
+#     mean_return = statistics.mean(returns)
+#     std_dev = statistics.stdev(returns)
+
+#     if std_dev == 0:
+#         return 0.0
+
+#     sharpe = (mean_return - risk_free_rate) / std_dev
+#     return round(sharpe, 4)
+
+def calculate_sharpe_ratio(returns, risk_free_rate=0):
+    """Calculate Sharpe ratio while safely handling invalid returns."""
+
+    valid_returns = [
+        float(r)
+        for r in returns
+        if r is not None and math.isfinite(float(r))
+    ]
+
+    if len(valid_returns) < 2:
         return 0.0
 
-    import statistics
-    mean_return = statistics.mean(returns)
-    std_dev = statistics.stdev(returns)
+    std_dev = statistics.stdev(valid_returns)
 
-    if std_dev == 0:
+    if std_dev == 0 or not math.isfinite(std_dev):
+        return 0.0
+
+    mean_return = statistics.mean(valid_returns)
+
+    if not math.isfinite(mean_return):
         return 0.0
 
     sharpe = (mean_return - risk_free_rate) / std_dev
-    return round(sharpe, 4)
+
+    return sharpe if math.isfinite(sharpe) else 0.0

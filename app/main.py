@@ -1,12 +1,15 @@
 """FastAPI application for Autonomous Investment Advisor."""
 
 from dotenv import load_dotenv
+import traceback
+
 
 # Load environment variables from .env file FIRST, before any imports
 load_dotenv()
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.graph import investment_graph
 from app.models.request_models import InvestmentRequest
@@ -24,12 +27,31 @@ from app.services.risk_analytics_service import (
     get_portfolio_risk_dashboard,
     RiskAnalyticsEngine
 )
+from app.chat_routes import router as chat_router
+
+from app.auth_routes import router as auth_router
+from app.investor_routes import router as investor_router
 
 app = FastAPI(
     title="Autonomous Investment Advisor",
     description="Production-grade agentic AI for personalized investment recommendations",
     version="1.0.0"
 )
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:4200",
+        "http://127.0.0.1:4200",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(auth_router)
+app.include_router(investor_router)
+app.include_router(chat_router)
 
 
 @app.get("/")
@@ -90,8 +112,14 @@ async def invest(request: InvestmentRequest):
             workflow_history=result["history"]
         )
 
+    # except Exception as e:
+    #     raise HTTPException(status_code=500, detail=f"Workflow error: {str(e)}")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Workflow error: {str(e)}")
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
 
 
 @app.get("/portfolio-history")

@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     groq_model: str = "openai/gpt-oss-120b"
     alpha_vantage_key: str = ""
     news_api_key: str = ""
+    jwt_secret_key: str = ""
+    jwt_algorithm: str = "HS256"
+    jwt_access_token_expire_minutes: int = 60
 
     class Config:
         env_file = ".env"
