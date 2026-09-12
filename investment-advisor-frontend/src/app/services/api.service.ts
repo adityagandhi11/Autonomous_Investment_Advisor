@@ -9,6 +9,16 @@ export interface InvestmentRequest {
   duration_years: number;
 }
 
+export interface ChatRequest {
+  conversation_id?: string | null;
+  message: string;
+  investment_goal?: string | null;
+  investment_amount?: number | null;
+  duration_years?: number | null;
+  risk_profile?: string | null;
+  portfolio?: { [key: string]: number } | null;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -90,4 +100,9 @@ export class ApiService {
   }
 
   // Additional methods for PUT, DELETE, etc. can be added here
+
+  // Chat API
+  sendChatMessage(request: ChatRequest): Observable<any> {
+    return this.postData('chat', request);
+  }
 }

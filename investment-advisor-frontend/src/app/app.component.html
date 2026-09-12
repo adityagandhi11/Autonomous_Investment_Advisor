@@ -1,4 +1,4 @@
-<div class="app-shell">
+<!-- <div class="app-shell">
   <header class="topbar">
     <a class="brand" routerLink="/dashboard"><span class="brand-mark">IA</span><span>Investment<br>Advisor</span></a>
     <nav class="topbar-nav">
@@ -9,4 +9,101 @@
     <span class="avatar">JD</span>
   </header>
   <router-outlet></router-outlet>
+</div> -->
+
+
+<div class="app-shell">
+
+  <header class="topbar">
+
+    <!-- Brand -->
+    <a class="brand" routerLink="/dashboard">
+      <span class="brand-mark">IA</span>
+      <span>
+        Investment<br>
+        Advisor
+      </span>
+    </a>
+
+    <!-- Navigation -->
+    <nav class="topbar-nav">
+
+      <a
+        routerLink="/dashboard"
+        routerLinkActive="active"
+        class="nav-link">
+        Portfolio Builder
+      </a>
+
+      <a
+        routerLink="/analytics"
+        routerLinkActive="active"
+        class="nav-link">
+        Risk Analytics
+      </a>
+
+    </nav>
+
+    <!-- Right side of header -->
+    <div class="topbar-right">
+
+      <!-- Existing AI status -->
+      <div class="topbar-meta">
+        <span class="status-dot"></span>
+        AI advisory desk
+        <span class="date">/ 2026</span>
+      </div>
+
+      <!-- Guest user -->
+      <ng-container *ngIf="!isAuthenticated">
+
+        <button
+          type="button"
+          class="auth-button login-button"
+          (click)="goToLogin()">
+          Login
+        </button>
+
+        <button
+          type="button"
+          class="auth-button signup-button"
+          (click)="goToSignup()">
+          Sign Up
+        </button>
+
+        <span class="avatar">GU</span>
+
+      </ng-container>
+
+      <!-- Authenticated user -->
+      <ng-container *ngIf="isAuthenticated">
+
+        <div class="user-menu">
+
+          <span class="user-name">
+            {{ currentUser?.name }}
+          </span>
+
+          <span class="avatar">
+            {{ getUserInitials() }}
+          </span>
+
+          <button
+            type="button"
+            class="logout-button"
+            (click)="logout()">
+            Logout
+          </button>
+
+        </div>
+
+      </ng-container>
+
+    </div>
+
+  </header>
+
+  <!-- Application pages -->
+  <router-outlet></router-outlet>
+
 </div>

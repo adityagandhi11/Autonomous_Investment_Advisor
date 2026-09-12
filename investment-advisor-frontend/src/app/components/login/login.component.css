@@ -65,6 +65,9 @@
   cursor: pointer;
   font-size: 15px;
   font-weight: 500;
+  background-color: #173a31;
+  color: white;
+
 }
 
 .auth-button:disabled {

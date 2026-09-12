@@ -52,3 +52,107 @@
   .topbar-meta { display: none; }
   .topbar-nav { gap: 16px; }
 }
+
+/* Authentication Controls */
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.auth-button {
+  padding: 8px 14px;
+  border: 1px solid #d8ded6;
+  background: transparent;
+  color: #4c5b52;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.auth-button:hover {
+  border-color: #91aa78;
+  color: #173a31;
+  background: #f5f7f2;
+}
+
+.signup-button {
+  border-color: #173a31;
+  color: #f4f6f1;
+  background: #173a31;
+}
+
+.signup-button:hover {
+  border-color: #245345;
+  color: #ffffff;
+  background: #245345;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-name {
+  color: #4c5b52;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.logout-button {
+  padding: 7px 10px;
+  border: 0;
+  border-bottom: 1px solid #aabe9b;
+  color: #547447;
+  background: transparent;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.logout-button:hover {
+  color: #173a31;
+  border-bottom-color: #91aa78;
+}
+
+@media (max-width: 900px) {
+
+  .topbar-right {
+    gap: 7px;
+  }
+
+  .user-name {
+    display: none;
+  }
+
+  .auth-button {
+    padding: 7px 9px;
+    font-size: 9px;
+  }
+
+}
+
+@media (max-width: 600px) {
+
+  .topbar-right {
+    width: 100%;
+    justify-content: center;
+    margin-left: 0;
+  }
+
+  .topbar-right .topbar-meta {
+    display: none;
+  }
+
+}

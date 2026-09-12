@@ -278,6 +278,10 @@ textarea { padding: 2px 0 10px; line-height: 1.5; } input { padding: 9px 0; }.fi
   font-weight: 600;
 }
 
+.message-author{
+  font-weight: bold;
+}
+
 @media (max-width: 700px) {
   .investment-info-grid {
     grid-template-columns: 1fr;
