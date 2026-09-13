@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { AuthService } from '../../services/auth.service';
 import { SignupRequest } from '../../models/auth';
@@ -9,7 +9,7 @@ import { SignupRequest } from '../../models/auth';
   templateUrl: './signup.component.html',
   styleUrls: ['./signup.component.css']
 })
-export class SignupComponent {
+export class SignupComponent implements OnInit {
 
   name = '';
   email = '';
@@ -19,10 +19,28 @@ export class SignupComponent {
   errorMessage = '';
   isLoading = false;
 
+  returnUrl = '/dashboard';
+
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
+
+  ngOnInit(): void {
+
+    /*
+     * Read the destination that sent the user
+     * to Signup.
+     */
+    this.route.queryParams.subscribe(params => {
+
+      if (params['returnUrl']) {
+        this.returnUrl = params['returnUrl'];
+      }
+
+    });
+  }
 
   signup(): void {
 
@@ -34,54 +52,87 @@ export class SignupComponent {
       !this.password ||
       !this.confirmPassword
     ) {
-      this.errorMessage = 'Please fill in all fields.';
+
+      this.errorMessage =
+        'Please fill in all fields.';
+
       return;
     }
 
-    if (this.password !== this.confirmPassword) {
-      this.errorMessage = 'Passwords do not match.';
+    if (
+      this.password !== this.confirmPassword
+    ) {
+
+      this.errorMessage =
+        'Passwords do not match.';
+
       return;
     }
 
     if (this.password.length < 8) {
+
       this.errorMessage =
         'Password must contain at least 8 characters.';
+
       return;
     }
 
     const request: SignupRequest = {
+
       name: this.name,
+
       email: this.email,
+
       password: this.password
     };
 
     this.isLoading = true;
 
-    this.authService.signup(request).subscribe({
+    this.authService
+      .signup(request)
+      .subscribe({
 
-      next: () => {
-        this.isLoading = false;
+        next: () => {
 
-        // Signup automatically logs the user in
-        this.router.navigate(['/dashboard']);
-      },
+          this.isLoading = false;
 
-      error: (error) => {
-        this.isLoading = false;
+          /*
+           * Signup automatically authenticates
+           * the user through AuthService.
+           *
+           * Return to the original destination.
+           */
+          this.router.navigateByUrl(
+            this.returnUrl
+          );
+        },
 
-        this.errorMessage =
-          error?.error?.detail ||
-          'Unable to create your account.';
-      }
+        error: (error) => {
 
-    });
+          this.isLoading = false;
+
+          this.errorMessage =
+            error?.error?.detail ||
+            'Unable to create your account.';
+        }
+
+      });
   }
 
   goToLogin(): void {
-    this.router.navigate(['/login']);
+
+    this.router.navigate(
+      ['/login'],
+      {
+        queryParams: {
+          returnUrl: this.returnUrl
+        }
+      }
+    );
   }
 
   goToDashboard(): void {
+
     this.router.navigate(['/dashboard']);
   }
 }
