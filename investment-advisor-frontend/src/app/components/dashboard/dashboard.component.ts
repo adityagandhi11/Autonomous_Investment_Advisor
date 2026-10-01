@@ -1,5 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import {
+  ChatHistoryService,
+  ChatHistoryItem
+} from '../../services/chat-history.service';
 
 import {
   ApiService,
@@ -50,32 +54,29 @@ export class DashboardComponent implements OnInit {
 
   showAuthModal = false;
 
+  chatHistory: ChatHistoryItem[] = [];
+  isChatHistoryLoading = false;
+  showChatHistory = false;
+  selectedConversationId: string | null = null;
+
   constructor(
     private apiService: ApiService,
     private authService: AuthService,
+    private router: Router,
     private portfolioStateService: PortfolioStateService,
-    private router: Router
+    private chatHistoryService: ChatHistoryService
   ) {}
 
   ngOnInit(): void {
-
     this.loadAuthenticationState();
 
-    /*
-     * First try to restore the previous dashboard state.
-     *
-     * This is important when the user:
-     *
-     * Dashboard
-     *    -> Login / Signup
-     *    -> Dashboard
-     *
-     * Without this restoration the portfolio would disappear
-     * because DashboardComponent gets recreated.
-     */
-    const restored = this.restoreDashboardState();
+    if (this.isAuthenticated) {
+      this.loadChatHistory();
+    }
 
-    if (!restored) {
+    if (this.portfolioStateService.hasState()) {
+      this.restoreDashboardState();
+    } else {
       this.fetchData();
     }
   }
@@ -236,20 +237,21 @@ export class DashboardComponent implements OnInit {
   }
 
   logout(): void {
-
     this.authService.logout();
 
     this.isAuthenticated = false;
-
     this.currentUser = null;
 
-    /*
-     * Once the user explicitly logs out, remove the
-     * temporary dashboard state as well.
-     */
-    this.clearDashboardState();
+    this.chatMessages = [];
+    this.chatMessage = '';
+    this.guestMessageCount = 0;
+    this.conversationId = null;
+    this.selectedConversationId = null;
 
-    this.showAuthModal = false;
+    this.chatHistory = [];
+    this.showChatHistory = false;
+
+    this.clearDashboardState();
   }
 
   /**
@@ -360,6 +362,161 @@ export class DashboardComponent implements OnInit {
               : 'Unable to complete the analysis. Check that FastAPI is running on port 8000.';
         }
       );
+  }
+
+  loadChatHistory(): void {
+    console.log('loadChatHistory called');
+    console.log('isAuthenticated:', this.isAuthenticated);
+
+    if (!this.isAuthenticated) {
+      console.log('Not authenticated, skipping chat history');
+      return;
+    }
+
+    this.isChatHistoryLoading = true;
+
+    this.chatHistoryService.getConversations().subscribe(
+      response => {
+        console.log('Chat history API response:', response);
+
+        this.chatHistory = response.conversations || [];
+
+        console.log('Loaded conversations:', this.chatHistory);
+
+        this.isChatHistoryLoading = false;
+      },
+      error => {
+        console.error('Chat history API error:', error);
+
+        this.chatHistory = [];
+        this.isChatHistoryLoading = false;
+      }
+    );
+  }
+
+  toggleChatHistory(): void {
+    if (!this.isAuthenticated) {
+      return;
+    }
+
+    this.showChatHistory = !this.showChatHistory;
+
+    console.log('History button clicked');
+    console.log('showChatHistory:', this.showChatHistory);
+
+    if (this.showChatHistory) {
+      this.loadChatHistory();
+    }
+  }
+
+  closeChatHistory(): void {
+    this.showChatHistory = false;
+  }
+
+  loadConversation(conversationId: string): void {
+    if (this.isChatHistoryLoading) {
+      return;
+    }
+
+    this.isChatHistoryLoading = true;
+
+    this.chatHistoryService
+      .getConversation(conversationId)
+      .subscribe(
+        conversation => {
+          this.conversationId =
+            conversation.conversation_id;
+
+          this.selectedConversationId =
+            conversation.conversation_id;
+
+          this.chatMessages =
+            (conversation.messages || []).map(message => ({
+              role: message.role,
+              content: message.content
+            }));
+
+          this.showChatHistory = false;
+          this.isChatHistoryLoading = false;
+
+          this.saveDashboardState();
+        },
+        error => {
+          console.error(
+            'Unable to load conversation:',
+            error
+          );
+
+          this.isChatHistoryLoading = false;
+
+          this.errorMessage =
+            'Unable to load that conversation. Please try again.';
+        }
+      );
+  }
+
+  startNewChat(): void {
+    this.conversationId = null;
+    this.selectedConversationId = null;
+
+    this.chatMessages = [
+      {
+        role: 'assistant',
+        content:
+          'Starting a new conversation. Ask me anything about your current investment strategy, or tell me how you would like to change it.'
+      }
+    ];
+
+    this.chatMessage = '';
+    this.errorMessage = '';
+    this.showChatHistory = false;
+
+    this.saveDashboardState();
+  }
+
+  formatConversationDate(
+    date: string | null
+  ): string {
+    if (!date) {
+      return '';
+    }
+
+    const parsedDate = new Date(date);
+
+    if (isNaN(parsedDate.getTime())) {
+      return '';
+    }
+
+    return parsedDate.toLocaleDateString(
+      'en-IN',
+      {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      }
+    );
+  }
+
+  formatConversationTime(
+    date: string | null
+  ): string {
+    if (!date) {
+      return '';
+    }
+
+    const parsedDate = new Date(date);
+
+    if (isNaN(parsedDate.getTime())) {
+      return '';
+    }
+
+    return parsedDate.toLocaleTimeString(
+      'en-IN',
+      {
+        hour: '2-digit',
+        minute: '2-digit'
+      }
+    );
   }
 
   // sendChatMessage(): void {
